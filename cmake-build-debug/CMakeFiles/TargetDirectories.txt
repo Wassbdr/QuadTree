@@ -1,0 +1,6 @@
+/home/wassim/CLionProjects/Octree/cmake-build-debug/CMakeFiles/QuadTree.dir
+/home/wassim/CLionProjects/Octree/cmake-build-debug/CMakeFiles/QuadTreeMain.dir
+/home/wassim/CLionProjects/Octree/cmake-build-debug/CMakeFiles/QuadTreeTest.dir
+/home/wassim/CLionProjects/Octree/cmake-build-debug/CMakeFiles/test.dir
+/home/wassim/CLionProjects/Octree/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/wassim/CLionProjects/Octree/cmake-build-debug/CMakeFiles/rebuild_cache.dir
