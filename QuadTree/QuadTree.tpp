@@ -40,7 +40,7 @@ void QuadTree::nearestNeighbors(const Point& target, std::array<Point, N>& neare
             const Point& candidate = current->points[i];
             if (candidate == target) continue; // Skip the target point itself
 
-            int dist = distanceSquared(target, candidate); // Calculate distance squared to the candidate point
+            const int dist = distanceSquared(target, candidate); // Calculate distance squared to the candidate point
             if (nearest_count < N) {
                 nearest[nearest_count++] = candidate; // Add candidate to nearest list if not full
                 if (nearest_count == N) {
@@ -68,10 +68,9 @@ void QuadTree::nearestNeighbors(const Point& target, std::array<Point, N>& neare
                 // Calculate the minimum distance from the target to the boundary of this child
                 int dx = std::max(0, std::abs(target.x - child->boundary.x) - child->boundary.w);
                 int dy = std::max(0, std::abs(target.y - child->boundary.y) - child->boundary.h);
-                int minDist = dx * dx + dy * dy; // Minimum squared distance to the child
 
                 // Only explore this child if it could contain a closer neighbor
-                if (minDist <= maxDist || nearest_count < N) {
+                if (int minDist = dx * dx + dy * dy; minDist <= maxDist || nearest_count < N) {
                     pq.emplace(child, minDist); // Add the child to the queue for exploration
                 }
             };

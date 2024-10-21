@@ -1,4 +1,4 @@
-#include "QuadTree.h"
+#include "QuadTree.hpp"
 #include <iostream>
 
 // Checks if two points are equal based on their coordinates
@@ -11,12 +11,18 @@ bool Point::operator<(const Point &other) const {
     return x < other.x || (x == other.x && y < other.y);
 }
 
+// Checks if two points are not equal based on their coordinates
+bool Point::operator!=(const Point &other) const {
+    return x != other.x || y != other.y;
+}
+
 // This method includes points on the right and bottom edges when determining if a point is within the rectangle
 bool Rect::contains(const Point &p) const {
     return p.x >= x - w && p.x <= x + w && p.y >= y - h && p.y <= y + h;
+
 }
 
-// Checks whether two rectangles overlap, by comparing their boundaries
+// Checks whether two rectangles overlap by comparing their boundaries
 bool Rect::intersects(const Rect &range) const {
     return !(range.x - range.w > x + w || range.x + range.w < x - w ||
              range.y - range.h > y + h || range.y + range.h < y - h);
@@ -30,10 +36,10 @@ void QuadTree::subdivide() {
     if (point_count == 0) return; // No points to subdivide if none exist
 
     // Calculate the midpoints to divide the boundary into quadrants
-    const int midX = boundary.x;
-    const int midY = boundary.y;
-    const int halfWidth = boundary.w / 2;
-    const int halfHeight = boundary.h / 2;
+    const float midX = boundary.x;
+    const float midY = boundary.y;
+    const float halfWidth = boundary.w / 2;
+    const float halfHeight = boundary.h / 2;
 
     // Creates smaller boundary rectangles for each quadrant and initializes child QuadTrees
     northeast = std::make_unique<QuadTree>(Rect(midX + halfWidth, midY - halfHeight, halfWidth, halfHeight));
@@ -62,7 +68,8 @@ bool QuadTree::insert(const Point &point) {
     }
 
     if (point_count < CAPACITY && !divided) {
-        points[point_count++] = point; // Store point if within capacity and no subdivision
+        points[point_count] = point; // Store point if within capacity and no subdivision
+        point_count++;
         return true;
     }
 
@@ -82,6 +89,10 @@ bool QuadTree::insert(const Point &point) {
 // Helper method to check if the QuadTree node is subdivided
 bool QuadTree::isDivided() const {
     return divided;
+}
+
+int QuadTree::capacity() {
+    return CAPACITY;
 }
 
 // Prints the QuadTree structure starting from the root node, color-coded and indented by depth
@@ -104,7 +115,7 @@ void QuadTree::print_quadtree_rec(const int depth) const {
     print_indent(depth);
     std::cout << "Points: ";
     for (int i = 0; i < point_count; ++i) {
-        std::cout << "(" << points[i].x << ", " << points[i].y << ") "; // Prints the stored points
+        std::cout << "(" << points[i].x << ", " << points[i].y << ", " << points[i].payload << ") "; // Prints the stored points with payload
     }
     std::cout << "\n";
 
