@@ -23,10 +23,10 @@ struct Point {
 struct Rect {
     int x, y, w, h;
     explicit Rect(const int x = 0.0, const int y = 0.0, const int w = 0.0f, const int h = 0.0f)
-        : x(x * 100000),
-          y(y * 100000),
-          w(w * 100000),
-          h(h * 100000) {}
+        : x(x),
+          y(y),
+          w(w),
+          h(h) {}
 
     [[nodiscard]] bool contains(const Point& p) const;     // Check if a point is within the rectangle
     [[nodiscard]] bool intersects(const Rect& range) const; // Check if two rectangles overlap
