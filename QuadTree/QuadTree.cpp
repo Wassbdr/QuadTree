@@ -31,15 +31,17 @@ bool Rect::intersects(const Rect &range) const {
 // Constructor for the QuadTree, initializes with a boundary rectangle
 QuadTree::QuadTree(const Rect &boundary) : boundary(boundary) {}
 
-// Subdivides the current QuadTree node into four child nodes when the point capacity is exceeded
+// Subdivides the current QuadTree node into four child nodes
 void QuadTree::subdivide() {
     if (point_count == 0) return; // No points to subdivide if none exist
 
     // Calculate the midpoints to divide the boundary into quadrants
     const int midX = boundary.x;
     const int midY = boundary.y;
-    const int halfWidth = boundary.w / 2;
-    const int halfHeight = boundary.h / 2;
+
+    // Use bitwise shift for fast and precise integer division by 2 (works for even numbers)
+    const int halfWidth = boundary.w >> 1;  // Equivalent to boundary.w / 2
+    const int halfHeight = boundary.h >> 1; // Equivalent to boundary.h / 2
 
     // Creates smaller boundary rectangles for each quadrant and initializes child QuadTrees
     northeast = std::make_unique<QuadTree>(Rect(midX + halfWidth, midY - halfHeight, halfWidth, halfHeight));
@@ -47,9 +49,8 @@ void QuadTree::subdivide() {
     southeast = std::make_unique<QuadTree>(Rect(midX + halfWidth, midY + halfHeight, halfWidth, halfHeight));
     southwest = std::make_unique<QuadTree>(Rect(midX - halfWidth, midY + halfHeight, halfWidth, halfHeight));
 
-    // Redistribute all the points from the current node into the appropriate child nodes
+    // Redistribute points from the parent node into child nodes
     for (int i = 0; i < point_count; ++i) {
-        // Tries to insert the point into each child node, only inserts into the first valid one
         if (!northeast->insert(points[i]) &&
             !northwest->insert(points[i]) &&
             !southeast->insert(points[i])) {
@@ -57,9 +58,10 @@ void QuadTree::subdivide() {
         }
     }
 
-    point_count = 0; // Clear points from this node after redistribution
-    divided = true;  // Mark this node as subdivided
+    point_count = 0; // Clear the points from this node after redistribution
+    divided = true;  // Mark the node as subdivided
 }
+
 
 // Inserts a point into the QuadTree, subdividing if necessary
 bool QuadTree::insert(const Point &point) {
