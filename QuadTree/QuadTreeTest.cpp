@@ -84,7 +84,7 @@ TEST_F(QuadTreeTest, NearestNeighborsSmallSet) {
 
     tree->print_quadtree();  // Print the QuadTree structure
     std::array<Point, 3> nearest;
-    int maxDist = std::numeric_limits<int>::max();
+    long maxDist = std::numeric_limits<long>::max();
     tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist);
 
     EXPECT_EQ(nearest[0], Point(10.0f, 10.0f));  // Closest point
@@ -101,7 +101,7 @@ TEST_F(QuadTreeTest, NearestNeighborsLargeSet) {
     }
 
     std::array<Point, 5> nearest;
-    int maxDist = std::numeric_limits<int>::max();
+    long maxDist = std::numeric_limits<long>::max();
     tree->nearestNeighbors<5>(Point(15.0f, 15.0f), nearest, maxDist);
 
     std::vector<Point> expected = {Point(10.0f, 10.0f), Point(20.0f, 10.0f), Point(10.0f, 20.0f), Point(20.0f, 20.0f), Point(0, 20.0f)};
@@ -118,7 +118,7 @@ TEST_F(QuadTreeTest, NearestNeighborsTargetOnExistingPoint) {
     tree->insert(Point(20.0f, 20.0f));
 
     std::array<Point, 3> nearest;
-    int maxDist = std::numeric_limits<int>::max();
+    long maxDist = std::numeric_limits<long>::max();
     tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist);
 
     EXPECT_EQ(nearest[0], Point(10.0f, 10.0f));  // Nearest point
@@ -132,7 +132,7 @@ TEST_F(QuadTreeTest, NearestNeighborsFewerPoints) {
     tree->insert(Point(20.0f, 20.0f));
 
     std::array<Point, 3> nearest;
-    int maxDist = std::numeric_limits<int>::max();
+    long maxDist = std::numeric_limits<long>::max();
     tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist);
 
     EXPECT_EQ(nearest[0], Point(10.0f, 10.0f));  // First closest
@@ -143,7 +143,7 @@ TEST_F(QuadTreeTest, NearestNeighborsFewerPoints) {
 // Test KNN search in an empty QuadTree
 TEST_F(QuadTreeTest, NearestNeighborsEmptyTree) {
     std::array<Point, 3> nearest;
-    int maxDist = std::numeric_limits<int>::max();
+    long maxDist = std::numeric_limits<long>::max();
     tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist);
 
     for (const auto& point : nearest) {
@@ -163,7 +163,7 @@ TEST_F(QuadTreeTest, NearestNeighborsExact8Points) {
     tree->insert(Point(-40.0f, -40.0f));
 
     std::array<Point, 8> nearest;
-    int maxDist = std::numeric_limits<int>::max();
+    long maxDist = std::numeric_limits<long>::max();
     tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist);
 
     std::vector<Point> expected = {
@@ -184,7 +184,7 @@ TEST_F(QuadTreeTest, NearestNeighborsMoreThan8Points) {
     }
 
     std::array<Point, 8> nearest;
-    int maxDist = std::numeric_limits<int>::max();
+    long maxDist = std::numeric_limits<long>::max();
     tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist);
 
     std::vector<Point> expected = {
@@ -197,6 +197,7 @@ TEST_F(QuadTreeTest, NearestNeighborsMoreThan8Points) {
     }
 }
 
+
 // Test KNN search requesting 8 neighbors but with fewer than 8 points in the QuadTree
 TEST_F(QuadTreeTest, NearestNeighborsRequest8FewerPoints) {
     tree->insert(Point(10.0f, 10.0f));
@@ -205,7 +206,7 @@ TEST_F(QuadTreeTest, NearestNeighborsRequest8FewerPoints) {
     tree->insert(Point(-20.0f, -20.0f));
 
     std::array<Point, 8> nearest;
-    int maxDist = std::numeric_limits<int>::max();
+    long maxDist = std::numeric_limits<long>::max();
     tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist);
 
     EXPECT_EQ(nearest[0], Point(10.0f, 10.0f));

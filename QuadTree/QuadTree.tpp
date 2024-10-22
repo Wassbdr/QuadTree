@@ -1,16 +1,18 @@
+#ifndef QUADTREE_TPP
+#define QUADTREE_TPP
 #include <queue>
 #include <limits>
 #include <algorithm>
 
 // Finds the nearest neighbors to a target point within the QuadTree
 template<size_t N>
-void QuadTree::nearestNeighbors(const Point& target, std::array<Point, N>& nearest, int& maxDist) const {
+auto QuadTree::nearestNeighbors(const Point &target, std::array<Point, N> &nearest, long &maxDist) const -> void {
     struct QueueItem {
         const QuadTree* node; // Pointer to the QuadTree node
-        int distance; // Distance from the target point
+        long distance; // Distance from the target point
 
         // Constructor for QueueItem to initialize the node and distance
-        QueueItem(const QuadTree* n, const int d) : node(n), distance(d) {}
+        QueueItem(const QuadTree* n, const long d) : node(n), distance(d) {}
 
         // Comparison operator for priority queue
         bool operator>(const QueueItem& other) const {
@@ -27,7 +29,7 @@ void QuadTree::nearestNeighbors(const Point& target, std::array<Point, N>& neare
 
     while (!pq.empty()) {
         const QuadTree* current = pq.top().node; // Get the current node
-        const int nodeDistance = pq.top().distance; // Get the distance of the current node
+        const long nodeDistance = pq.top().distance; // Get the distance of the current node
         pq.pop();
 
         // Early exit if the node's min distance exceeds the max distance for KNN
@@ -40,7 +42,7 @@ void QuadTree::nearestNeighbors(const Point& target, std::array<Point, N>& neare
             const Point& candidate = current->points[i];
             if (candidate == target) continue; // Skip the target point itself
 
-            const int dist = distanceSquared(target, candidate); // Calculate distance squared to the candidate point
+            const long dist = distanceSquared(target, candidate); // Calculate distance squared to the candidate point
             if (nearest_count < N) {
                 nearest[nearest_count++] = candidate; // Add candidate to nearest list if not full
                 if (nearest_count == N) {
@@ -66,11 +68,11 @@ void QuadTree::nearestNeighbors(const Point& target, std::array<Point, N>& neare
                 if (!child) return; // Exit if the child node does not exist
 
                 // Calculate the minimum distance from the target to the boundary of this child
-                int dx = std::max(0, std::abs(target.x - child->boundary.x) - child->boundary.w);
-                int dy = std::max(0, std::abs(target.y - child->boundary.y) - child->boundary.h);
+                long dx = std::max(0L, std::abs(target.x - child->boundary.x) - child->boundary.w);
+                long dy = std::max(0L, std::abs(target.y - child->boundary.y) - child->boundary.h);
 
                 // Only explore this child if it could contain a closer neighbor
-                if (int minDist = dx * dx + dy * dy; minDist <= maxDist || nearest_count < N) {
+                if (long minDist = dx * dx + dy * dy; minDist <= maxDist || nearest_count < N) {
                     pq.emplace(child, minDist); // Add the child to the queue for exploration
                 }
             };
@@ -83,3 +85,5 @@ void QuadTree::nearestNeighbors(const Point& target, std::array<Point, N>& neare
         }
     }
 }
+
+#endif // QUADTREE_TPP

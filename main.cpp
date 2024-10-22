@@ -31,7 +31,7 @@ int main() {
     for (int i = 0; i < NUM_QUERIES; ++i) {
         Point qp(static_cast<float>(dis(gen)) / SCALE, static_cast<float>(dis(gen)) / SCALE);
         std::array<Point, 8> nearest;
-        int maxDist = std::numeric_limits<int>::max();
+        long maxDist = std::numeric_limits<long>::max();
         qt.nearestNeighbors(qp, nearest, maxDist);
     }
     end = std::chrono::high_resolution_clock::now();

@@ -4,10 +4,10 @@
 #include <array>
 #include <memory>
 
-constexpr int SCALE = 100000;
+constexpr long SCALE = 100000;
 // Point structure representing a 2D point with x and y coordinates as float
 struct Point {
-    int x, y;
+    long x, y;
     float payload;  // Additional field for payload data
 
     explicit Point(const float x = 0.0f, const float y = 0.0f, const float payload = 0.0f)
@@ -22,13 +22,13 @@ struct Point {
 
 // Rectangle (Rect) structure representing a boundary with x, y as the center, and w, h as half-width and half-height
 struct Rect {
-    int x, y, w, h;
-    explicit Rect(const int x = 0.0, const int y = 0.0, const int w = 0.0f, const int h = 0.0f)
+    long x, y, w, h;
+    explicit Rect(const long x = 0.0, const long y = 0.0, const long w = 0.0f, const long h = 0.0f)
         : x(x),
           y(y),
           w(w),
           h(h) {}
- explicit Rect(const float x = 0.0f, const float y = 0.0f, const float w = 0.0f, const float h = 0.0f)
+    explicit Rect(const float x = 0.0f, const float y = 0.0f, const float w = 0.0f, const float h = 0.0f)
         : x(static_cast<int>(x * SCALE)),
           y(static_cast<int>(y * SCALE)),
           w(static_cast<int>(w * SCALE)),
@@ -38,9 +38,9 @@ struct Rect {
 };
 
 // Inline function to compute squared Euclidean distance between two points (avoids costly square root)
-inline int distanceSquared(const Point& a, const Point& b) {
-    const int dx = a.x - b.x;
-    const int dy = a.y - b.y;
+inline long distanceSquared(const Point& a, const Point& b) {
+    const long dx = a.x - b.x;
+    const long dy = a.y - b.y;
     return dx * dx + dy * dy;
 }
 
@@ -72,7 +72,7 @@ public:
 
     // Nearest Neighbor search: Find the N closest neighbors to the target point
     template<size_t N>
-    void nearestNeighbors(const Point& target, std::array<Point, N>& nearest, int& maxDist) const;
+    void nearestNeighbors(const Point& target, std::array<Point, N>& nearest, long& maxDist) const;
 };
 
 #include "QuadTree.tpp"

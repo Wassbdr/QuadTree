@@ -36,12 +36,12 @@ void QuadTree::subdivide() {
     if (point_count == 0) return; // No points to subdivide if none exist
 
     // Calculate the midpoints to divide the boundary into quadrants
-    const int midX = boundary.x;
-    const int midY = boundary.y;
+    const long midX = boundary.x;
+    const long midY = boundary.y;
 
     // Use bitwise shift for fast and precise integer division by 2 (works for even numbers)
-    const int halfWidth = boundary.w >> 1;  // Equivalent to boundary.w / 2
-    const int halfHeight = boundary.h >> 1; // Equivalent to boundary.h / 2
+    const long halfWidth = boundary.w >> 1;  // Equivalent to boundary.w / 2
+    const long halfHeight = boundary.h >> 1; // Equivalent to boundary.h / 2
 
     // Creates smaller boundary rectangles for each quadrant and initializes child QuadTrees
     northeast = std::make_unique<QuadTree>(Rect(midX + halfWidth, midY - halfHeight, halfWidth, halfHeight));
