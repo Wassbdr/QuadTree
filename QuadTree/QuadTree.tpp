@@ -1,88 +1,90 @@
 #ifndef QUADTREE_TPP
 #define QUADTREE_TPP
+
 #include <queue>
 #include <limits>
 #include <algorithm>
+#include <vector>
+#include <array>
 
-// Finds the nearest neighbors to a target point within the QuadTree
+// Optimized nearest neighbor search in QuadTree
 template<size_t N>
-auto QuadTree::nearestNeighbors(const Point &target, std::array<Point, N> &nearest, long &maxDist) const -> void {
+void QuadTree::nearestNeighbors(const Point &target, std::array<Point, N> &nearest, float &maxDist) const {
     struct QueueItem {
-        const QuadTree* node; // Pointer to the QuadTree node
-        long distance; // Distance from the target point
+        const QuadTree* node;
+        float distance;
 
-        // Constructor for QueueItem to initialize the node and distance
-        QueueItem(const QuadTree* n, const long d) : node(n), distance(d) {}
+        QueueItem(const QuadTree* n, const float d) : node(n), distance(d) {}
 
-        // Comparison operator for priority queue
         bool operator>(const QueueItem& other) const {
             return distance > other.distance;
         }
     };
 
-    // Priority queue to explore nodes based on their distance to the target point
-    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> pq;
-    pq.emplace(this, 0); // Start with the root QuadTree node
+    // Priority queue for traversing nodes based on distance
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    nodeQueue.emplace(this, 0);
 
-    int nearest_count = 0; // Count of nearest neighbors found
-    int furthest_index = -1; // Index of the furthest neighbor found
+    // Preallocate nearest heap with a fixed size of N
+    std::vector<std::pair<float, Point>> nearestHeap;
+    nearestHeap.reserve(N);
 
-    while (!pq.empty()) {
-        const QuadTree* current = pq.top().node; // Get the current node
-        const long nodeDistance = pq.top().distance; // Get the distance of the current node
-        pq.pop();
+    while (!nodeQueue.empty()) {
+        const QuadTree* current = nodeQueue.top().node;
+        const float currentDistance = nodeQueue.top().distance;
+        nodeQueue.pop();
 
-        // Early exit if the node's min distance exceeds the max distance for KNN
-        if (nearest_count == N && nodeDistance > maxDist) {
-            break; // Stop searching further nodes if max distance exceeded
+        // Stop if current distance is larger than the farthest point in nearestHeap
+        if (nearestHeap.size() == N && currentDistance > maxDist) {
+            break;
         }
 
-        // Check all points in the current node for nearest neighbors
+        // Check all points in the current node
         for (int i = 0; i < current->point_count; ++i) {
             const Point& candidate = current->points[i];
-            if (candidate == target) continue; // Skip the target point itself
+            if (candidate == target) continue;
 
-            const long dist = distanceSquared(target, candidate); // Calculate distance squared to the candidate point
-            if (nearest_count < N) {
-                nearest[nearest_count++] = candidate; // Add candidate to nearest list if not full
-                if (nearest_count == N) {
-                    // Compute the maximum distance after filling the array
-                    furthest_index = std::distance(nearest.begin(), std::max_element(nearest.begin(), nearest.end(), [&](const Point& a, const Point& b) {
-                        return distanceSquared(target, a) < distanceSquared(target, b);
-                    }));
-                    maxDist = distanceSquared(target, nearest[furthest_index]); // Update maxDist
+            float dist = distanceSquared(target, candidate);
+
+            // Add to heap if we haven't found N points yet
+            if (nearestHeap.size() < N) {
+                nearestHeap.emplace_back(dist, candidate);
+                if (nearestHeap.size() == N) {
+                    std::ranges::make_heap(nearestHeap.begin(), nearestHeap.end()); // Build heap
+                    maxDist = nearestHeap.front().first; // Update maxDist after heap is filled
                 }
-            } else if (dist < maxDist) {
-                // Replace the furthest point if the candidate is closer
-                nearest[furthest_index] = candidate;
-                furthest_index = std::distance(nearest.begin(), std::max_element(nearest.begin(), nearest.end(), [&](const Point& a, const Point& b) {
-                    return distanceSquared(target, a) < distanceSquared(target, b);
-                }));
-                maxDist = distanceSquared(target, nearest[furthest_index]); // Update maxDist
+            }
+            // Otherwise, only replace if the new point is closer
+            else if (dist < nearestHeap.front().first) {
+                std::ranges::pop_heap(nearestHeap.begin(), nearestHeap.end());
+                nearestHeap.back() = std::make_pair(dist, candidate);
+                std::ranges::push_heap(nearestHeap.begin(), nearestHeap.end());
+                maxDist = nearestHeap.front().first; // Update maxDist
             }
         }
 
-        // Enqueue child nodes if the current node is divided
+        // Traverse the child nodes
         if (current->divided) {
-            auto enqueue_if_closer = [&](const QuadTree* child) {
-                if (!child) return; // Exit if the child node does not exist
+            for (const QuadTree* child : { current->northeast.get(), current->northwest.get(), current->southeast.get(), current->southwest.get() }) {
+                if (!child) continue;
 
-                // Calculate the minimum distance from the target to the boundary of this child
-                long dx = std::max(0L, std::abs(target.x - child->boundary.x) - child->boundary.w);
-                long dy = std::max(0L, std::abs(target.y - child->boundary.y) - child->boundary.h);
+                // Calculate the minimum distance from the target to the boundary of the child node
+                float dx = std::max(0.0f, std::abs(target.x - child->boundary.x) - child->boundary.w);
+                float dy = std::max(0.0f, std::abs(target.y - child->boundary.y) - child->boundary.h);
 
-                // Only explore this child if it could contain a closer neighbor
-                if (long minDist = dx * dx + dy * dy; minDist <= maxDist || nearest_count < N) {
-                    pq.emplace(child, minDist); // Add the child to the queue for exploration
+                // Only traverse if minDist is smaller than maxDist, or we haven't found enough neighbors
+                if (float minDist = dx * dx + dy * dy; minDist <= maxDist || nearestHeap.size() < N) {
+                    nodeQueue.emplace(child, minDist);
                 }
-            };
-
-            // Check all four child nodes (northeast, northwest, southeast, southwest)
-            enqueue_if_closer(current->northeast.get());
-            enqueue_if_closer(current->northwest.get());
-            enqueue_if_closer(current->southeast.get());
-            enqueue_if_closer(current->southwest.get());
+            }
         }
+    }
+
+    // Populate the nearest array
+    for (unsigned int i = 0; i < N && !nearestHeap.empty(); ++i) {
+        std::ranges::pop_heap(nearestHeap.begin(), nearestHeap.end());
+        nearest[i] = nearestHeap.back().second;
+        nearestHeap.pop_back();
     }
 }
 

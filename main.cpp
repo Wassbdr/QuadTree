@@ -6,7 +6,6 @@
 int main() {
     constexpr int MAP_SIZE = 3600;
     constexpr int NUM_QUERIES = 1000000;
-    constexpr int SCALE = 100000;
 
     const Rect boundary(MAP_SIZE / 2.0f, MAP_SIZE / 2.0f, MAP_SIZE / 2.0f, MAP_SIZE / 2.0f);
     QuadTree qt(boundary);
@@ -15,7 +14,7 @@ int main() {
     for (int x = 0; x < MAP_SIZE; ++x) {
         for (int y = 0; y < MAP_SIZE; ++y) {
             float payload = static_cast<float>(x + y) / 2.0f;
-            qt.insert(Point(static_cast<float>(x) / SCALE, static_cast<float>(y) / SCALE, payload));
+            qt.insert(Point(static_cast<float>(x), static_cast<float>(y) , payload));
         }
     }
     auto end = std::chrono::high_resolution_clock::now();
@@ -29,9 +28,9 @@ int main() {
 
     start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < NUM_QUERIES; ++i) {
-        Point qp(static_cast<float>(dis(gen)) / SCALE, static_cast<float>(dis(gen)) / SCALE);
+        Point qp(static_cast<float>(dis(gen)), static_cast<float>(dis(gen)));
         std::array<Point, 8> nearest;
-        long maxDist = std::numeric_limits<long>::max();
+        float maxDist = std::numeric_limits<float>::max();
         qt.nearestNeighbors(qp, nearest, maxDist);
     }
     end = std::chrono::high_resolution_clock::now();
