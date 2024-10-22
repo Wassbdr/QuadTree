@@ -27,7 +27,11 @@ struct Rect {
           y(y),
           w(w),
           h(h) {}
-
+ explicit Rect(const float x = 0.0f, const float y = 0.0f, const float w = 0.0f, const float h = 0.0f)
+        : x(static_cast<int>(x * 100000)),
+          y(static_cast<int>(y * 100000)),
+          w(static_cast<int>(w * 100000)),
+          h(static_cast<int>(h * 100000)) {}
     [[nodiscard]] bool contains(const Point& p) const;     // Check if a point is within the rectangle
     [[nodiscard]] bool intersects(const Rect& range) const; // Check if two rectangles overlap
 };
