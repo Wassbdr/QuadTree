@@ -85,13 +85,14 @@ TEST_F(QuadTreeTest, NearestNeighborsSmallSet) {
     tree->print_quadtree();  // Print the QuadTree structure
     std::array<Point, 3> nearest;
     float maxDist = std::numeric_limits<float>::max();
-    tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist);
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist, nodeQueue, nearestHeap);
 
     std::vector<Point> expected = {Point(10.0f, 10.0f), Point(-10.0f, -10.0f), Point(20.0f, 20.0f)};
     for (const auto& point : nearest) {
         EXPECT_TRUE(std::find(expected.begin(), expected.end(), point) != expected.end());
     }
-
 }
 
 // Test KNN search with a large set of points
@@ -104,7 +105,9 @@ TEST_F(QuadTreeTest, NearestNeighborsLargeSet) {
 
     std::array<Point, 5> nearest;
     float maxDist = std::numeric_limits<float>::max();
-    tree->nearestNeighbors<5>(Point(15.0f, 15.0f), nearest, maxDist);
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<5>(Point(15.0f, 15.0f), nearest, maxDist, nodeQueue, nearestHeap);
 
     std::vector<Point> expected = {Point(10.0f, 10.0f), Point(20.0f, 10.0f), Point(10.0f, 20.0f), Point(20.0f, 20.0f), Point(0, 10.0f)};
     for (const auto& point : nearest) {
@@ -121,7 +124,9 @@ TEST_F(QuadTreeTest, NearestNeighborsTargetOnExistingPoint) {
 
     std::array<Point, 3> nearest;
     float maxDist = std::numeric_limits<float>::max();
-    tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist);
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist, nodeQueue, nearestHeap);
 
     EXPECT_EQ(nearest[0], Point(20.0f, 20.0f));  // Third closest
     EXPECT_EQ(nearest[1], Point(10.0f, 10.0f));  // Nearest point
@@ -135,10 +140,12 @@ TEST_F(QuadTreeTest, NearestNeighborsFewerPoints) {
 
     std::array<Point, 3> nearest;
     float maxDist = std::numeric_limits<float>::max();
-    tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist);
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist, nodeQueue, nearestHeap);
 
-    EXPECT_EQ(nearest[0], Point(20.0f, 20.0f));  // Second closest
-    EXPECT_EQ(nearest[1], Point(10.0f, 10.0f));  // First closest
+    EXPECT_EQ(nearest[0], Point(10.0f, 10.0f));  // First closest
+    EXPECT_EQ(nearest[1], Point(20.0f, 20.0f));  // Second closest
     EXPECT_EQ(nearest[2], Point());              // No third point, should return default
 }
 
@@ -146,7 +153,9 @@ TEST_F(QuadTreeTest, NearestNeighborsFewerPoints) {
 TEST_F(QuadTreeTest, NearestNeighborsEmptyTree) {
     std::array<Point, 3> nearest;
     float maxDist = std::numeric_limits<float>::max();
-    tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist);
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<3>(Point(0.0f, 0.0f), nearest, maxDist, nodeQueue, nearestHeap);
 
     for (const auto& point : nearest) {
         EXPECT_EQ(point, Point());  // All should be default points since the tree is empty
@@ -166,7 +175,9 @@ TEST_F(QuadTreeTest, NearestNeighborsExact8Points) {
 
     std::array<Point, 8> nearest;
     float maxDist = std::numeric_limits<float>::max();
-    tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist);
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist, nodeQueue, nearestHeap);
 
     std::vector expected = {
         Point(10.0f, 10.0f), Point(-10.0f, -10.0f), Point(20.0f, 20.0f), Point(-20.0f, -20.0f),
@@ -187,7 +198,9 @@ TEST_F(QuadTreeTest, NearestNeighborsMoreThan8Points) {
 
     std::array<Point, 8> nearest;
     float maxDist = std::numeric_limits<float>::max();
-    tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist);
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist, nodeQueue, nearestHeap);
 
     std::vector expected = {
         Point(-10.0f, 10.0f), Point(10.0f, -10.0f), Point(10.0f, 0.0f), Point(0.0f, 10.0f),
@@ -199,7 +212,6 @@ TEST_F(QuadTreeTest, NearestNeighborsMoreThan8Points) {
     }
 }
 
-
 // Test KNN search requesting 8 neighbors but with fewer than 8 points in the QuadTree
 TEST_F(QuadTreeTest, NearestNeighborsRequest8FewerPoints) {
     tree->insert(Point(10.0f, 10.0f));
@@ -209,13 +221,63 @@ TEST_F(QuadTreeTest, NearestNeighborsRequest8FewerPoints) {
 
     std::array<Point, 8> nearest;
     float maxDist = std::numeric_limits<float>::max();
-    tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist);
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<8>(Point(0.0f, 0.0f), nearest, maxDist, nodeQueue, nearestHeap);
 
-    EXPECT_EQ(nearest[0], Point(20.0f, 20.0f));
-    EXPECT_EQ(nearest[1], Point(-20.0f, -20.0f));
-    EXPECT_EQ(nearest[2], Point(10.0f, 10.0f));
+    EXPECT_EQ(nearest[0], Point(10.0f, 10.0f));
+    EXPECT_EQ(nearest[1], Point(20.0f, 20.0f));
+    EXPECT_EQ(nearest[2], Point(-20.0f, -20.0f));
     EXPECT_EQ(nearest[3], Point(-10.0f, -10.0f));
     EXPECT_EQ(nearest[4], Point());  // Default value since there are no more points
+}
+// Test nearest neighbor search with points in the same location
+TEST_F(QuadTreeTest, NearestNeighborsSameLocation) {
+    tree->insert(Point(2.0f, 2.0f));
+    tree->insert(Point(2.0f, 2.0f)); // Same location
+    tree->insert(Point(10.0f, 10.0f));
+
+    std::array<Point, 2> nearest;
+    float maxDist = std::numeric_limits<float>::max();
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<2>(Point(1.0f, 1.0f), nearest, maxDist, nodeQueue, nearestHeap);
+
+    EXPECT_EQ(nearest[0], Point(2.0f, 2.0f));
+    EXPECT_EQ(nearest[1], Point(2.0f, 2.0f));  // Both should be the same
+}
+// Test inserting a large number of points to stress the QuadTree
+TEST_F(QuadTreeTest, StressTestLargeInsert) {
+    //Create a new quad tree
+    tree = std::make_unique<QuadTree>(Rect(0.0f, 0.0f, 1000.0f, 1000.0f));
+
+    for (int i = -1000; i <= 1000; i += 10) {
+        for (int j = -1000; j <= 1000; j += 10) {
+            EXPECT_TRUE(tree->insert(Point(static_cast<float>(i), static_cast<float>(j))));
+        }
+    }
+    EXPECT_TRUE(tree->isDivided());  // The tree should subdivide under heavy load
+}
+// Test inserting a point at the QuadTree boundary
+TEST_F(QuadTreeTest, InsertPointAtBoundary) {
+    EXPECT_TRUE(tree->insert(Point(50.0f, 50.0f)));   // Point exactly at boundary
+    EXPECT_TRUE(tree->insert(Point(-50.0f, -50.0f))); // Point exactly at negative boundary
+    EXPECT_FALSE(tree->insert(Point(51.0f, 51.0f)));  // Point outside boundary
+    EXPECT_FALSE(tree->insert(Point(-51.0f, -51.0f))); // Point outside negative boundary
+}
+// Test inserting identical points
+TEST_F(QuadTreeTest, IdenticalPoints) {
+    for (int i = 0; i < 10; ++i) {
+        EXPECT_TRUE(tree->insert(Point(5.0f, 5.0f)));  // Same point inserted multiple times
+    }
+
+    std::array<Point, 3> nearest;
+    float maxDist = std::numeric_limits<float>::max();
+    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
+    std::vector<std::pair<float, Point>> nearestHeap;
+    tree->nearestNeighbors<3>(Point(5.0f, 5.0f), nearest, maxDist, nodeQueue, nearestHeap);
+
+    EXPECT_EQ(nearest[0], Point(5.0f, 5.0f));  // Nearest should be the identical point
 }
 
 int main(int argc, char **argv) {

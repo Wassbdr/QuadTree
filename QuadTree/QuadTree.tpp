@@ -9,26 +9,11 @@
 
 // Optimized nearest neighbor search in QuadTree
 template<size_t N>
-void QuadTree::nearestNeighbors(const Point &target, std::array<Point, N> &nearest, float &maxDist) const {
-    struct QueueItem {
-        const QuadTree* node;
-        float distance;
+void QuadTree::nearestNeighbors(const Point &target, std::array<Point, N> &nearest, float &maxDist,
+                                std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>>& nodeQueue,
+                                std::vector<std::pair<float, Point>> &nearestHeap) const {
 
-        QueueItem(const QuadTree* n, const float d) : node(n), distance(d) {}
-
-        bool operator>(const QueueItem& other) const {
-            return distance > other.distance;
-        }
-    };
-
-    // Priority queue for traversing nodes based on distance
-    std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<>> nodeQueue;
-    nodeQueue.emplace(this, 0);
-
-    // Preallocate nearest heap with a fixed size of N
-    std::vector<std::pair<float, Point>> nearestHeap;
-    nearestHeap.reserve(N);
-
+    nodeQueue.emplace(this, 0.0f);
     while (!nodeQueue.empty()) {
         const QuadTree* current = nodeQueue.top().node;
         const float currentDistance = nodeQueue.top().distance;
@@ -36,7 +21,7 @@ void QuadTree::nearestNeighbors(const Point &target, std::array<Point, N> &neare
 
         // Stop if current distance is larger than the farthest point in nearestHeap
         if (nearestHeap.size() == N && currentDistance > maxDist) {
-            break;
+            break;  // Early exit
         }
 
         // Check all points in the current node
@@ -71,10 +56,20 @@ void QuadTree::nearestNeighbors(const Point &target, std::array<Point, N> &neare
                 // Calculate the minimum distance from the target to the boundary of the child node
                 float dx = std::max(0.0f, std::abs(target.x - child->boundary.x) - child->boundary.w);
                 float dy = std::max(0.0f, std::abs(target.y - child->boundary.y) - child->boundary.h);
+                float minDist = dx * dx + dy * dy;
 
                 // Only traverse if minDist is smaller than maxDist, or we haven't found enough neighbors
-                if (float minDist = dx * dx + dy * dy; minDist <= maxDist || nearestHeap.size() < N) {
-                    nodeQueue.emplace(child, minDist);
+                if (minDist <= maxDist || nearestHeap.size() < N) {
+                    // Use the array of representative points to prune further
+                    for (const auto& rep : child->points) {
+                        float repDist = distanceSquared(target, rep);
+
+                        // Check if representative point is within maxDist, and if so, enqueue the child
+                        if (repDist < maxDist) {
+                            nodeQueue.emplace(child, minDist);  // Enqueue child node for further exploration
+                            break; // If one rep point qualifies, no need to check others
+                        }
+                    }
                 }
             }
         }

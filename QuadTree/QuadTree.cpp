@@ -1,4 +1,5 @@
 #include "QuadTree.hpp"
+
 #include <iostream>
 
 // Checks if two points are equal based on their coordinates
